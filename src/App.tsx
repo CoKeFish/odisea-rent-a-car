@@ -1,5 +1,4 @@
 import { Layout } from "@stellar/design-system";
-import "./App.module.css";
 import { Outlet } from "react-router-dom";
 
 const App: React.FC = () => (
