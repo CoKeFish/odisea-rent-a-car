@@ -1,13 +1,15 @@
-﻿import {AccountBalance, IAccount} from "../interfaces/account.ts";
-import {useStellarAccounts} from "../providers/StellarAccountProvider.tsx";
-import {useEffect, useState} from "react";
+﻿import Modal from "./Modal";
 import {stellarService} from "../services/stellar.service.ts";
-import Modal from "./Modal.tsx";
+import {Dispatch, SetStateAction, useEffect, useState} from "react";
+import {AccountBalance, IAccount} from "../interfaces/account.ts";
+import {useStellarAccounts} from "../providers/StellarAccountProvider.tsx";
+import AccountBalancesInput from "./AccountBalanceInput.tsx";
 
-interface PaymentModalProps {
+interface ICreateModalProps {
     closeModal: () => void;
     getAccount: (name: string) => IAccount | null;
     onPaymentSuccess: () => Promise<void>;
+    onClaimableBalanceCreated?: Dispatch<SetStateAction<string | null>>;
 }
 
 export interface PaymentFormData {
@@ -16,11 +18,12 @@ export interface PaymentFormData {
     amount: string;
 }
 
-function PaymentModal({
-                          closeModal,
-                          getAccount,
-                          onPaymentSuccess,
-                      }: PaymentModalProps) {
+function CreateClaimableModal({
+                                  closeModal,
+                                  getAccount,
+                                  onPaymentSuccess,
+                                  onClaimableBalanceCreated,
+                              }: ICreateModalProps) {
     const [sourceAccount, setSourceAccount] = useState<IAccount | null>(null);
     const [destinationAccount, setDestinationAccount] = useState<IAccount | null>(
         null
@@ -30,7 +33,8 @@ function PaymentModal({
     const [sourceBalances, setSourceBalances] = useState<AccountBalance[]>([]);
     const [loadingBalances, setLoadingBalances] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const {setHashId} = useStellarAccounts();
+    const { setHashId } = useStellarAccounts();
+
 
     const accountNames = ["bob", "alice"];
     const availableAccounts: IAccount[] = accountNames
@@ -43,6 +47,8 @@ function PaymentModal({
         );
         return name ? name.charAt(0).toUpperCase() + name.slice(1) : "Unknown";
     };
+
+
 
     useEffect(() => {
         const loadSourceBalances = async () => {
@@ -74,36 +80,32 @@ function PaymentModal({
     }, [sourceAccount]);
 
     const handleSubmit = async () => {
-        if (!sourceAccount || !destinationAccount || !amount || !selectedAsset) {
+        if (!sourceAccount || !selectedAsset || !amount || !destinationAccount) {
             alert("Please fill all fields");
-            return;
-        }
-
-        if (sourceAccount.publicKey === destinationAccount.publicKey) {
-            alert("Source and destination accounts must be different");
             return;
         }
 
         setIsSubmitting(true);
         try {
-            const response = await stellarService.payment(
-                sourceAccount.publicKey,
-                sourceAccount.secretKey,
-                destinationAccount.publicKey,
-                //"GDJZ5QGAPDWWGTK3Z75UEVRXUJTFMVE6PQMRZKYQC3I4XOINCMS7RQ3D",
-                destinationAccount.secretKey,
-                //"SC53PZNDGXOACYANPID4ZFHIMLKOX4ESS433GTMN4J2LWJANLZ5YSH5A",
+            const response = await stellarService.createClaimableBalance(
+                selectedAsset,
                 amount,
-                selectedAsset
+                sourceAccount.secretKey,
+                destinationAccount.secretKey
             );
 
-            console.log("Payment successful:", response);
+            if (response && onClaimableBalanceCreated) {
+                const claimableBalanceId = response.claimableBalanceId;
+                if (claimableBalanceId) {
+                    onClaimableBalanceCreated(claimableBalanceId);
+                }
+            }
 
             if (onPaymentSuccess) {
                 await onPaymentSuccess();
             }
 
-            setHashId(response.hash);
+            setHashId(response?.transaction.hash);
 
             setSourceAccount(null);
             setDestinationAccount(null);
@@ -123,7 +125,7 @@ function PaymentModal({
     );
 
     return (
-        <Modal title="Send Payment" closeModal={closeModal}>
+        <Modal title="Create Claimable Balance" closeModal={closeModal}>
             <div className="p-4 md:p-5 space-y-5">
                 <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-2">
@@ -149,92 +151,18 @@ function PaymentModal({
                 </div>
 
                 {sourceAccount && (
-                    <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-2">
-                            Asset
-                        </label>
-                        {loadingBalances ? (
-                            <div
-                                className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg bg-slate-50 text-slate-500 flex items-center gap-2">
-                                <svg
-                                    className="animate-spin h-4 w-4"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <circle
-                                        className="opacity-25"
-                                        cx="12"
-                                        cy="12"
-                                        r="10"
-                                        stroke="currentColor"
-                                        strokeWidth="4"
-                                    ></circle>
-                                    <path
-                                        className="opacity-75"
-                                        fill="currentColor"
-                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                    ></path>
-                                </svg>
-                                Loading balances...
-                            </div>
-                        ) : sourceBalances.length === 0 ? (
-                            <div
-                                className="w-full px-4 py-3 border-2 border-red-200 bg-red-50 rounded-lg text-red-600 text-sm">
-                                No assets available in this account
-                            </div>
-                        ) : (
-                            <>
-                                <select
-                                    value={selectedAsset}
-                                    onChange={(e) => setSelectedAsset(e.target.value)}
-                                    className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:outline-none transition-colors bg-white text-slate-900 font-medium"
-                                >
-                                    <option value="">Select asset</option>
-                                    {sourceBalances.map((balance: AccountBalance) => (
-                                        <option key={balance.assetCode} value={balance.assetCode}>
-                                            {balance.assetCode}
-                                        </option>
-                                    ))}
-                                </select>
-
-                                {selectedBalance && (
-                                    <div className="mt-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg">
-                                        <p className="text-sm text-blue-800">
-                                            Available:{" "}
-                                            <span className="font-bold">
-                        {Number(selectedBalance.amount).toLocaleString(
-                            "en-US",
-                            {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 7,
-                            }
-                        )}{" "}
-                                                {selectedBalance.assetCode}
-                      </span>
-                                        </p>
-                                    </div>
-                                )}
-                            </>
-                        )}
-                    </div>
+                    <AccountBalancesInput
+                        loadingBalances={loadingBalances}
+                        sourceBalances={sourceBalances}
+                        selectedAsset={selectedAsset}
+                        selectedBalance={selectedBalance}
+                        setSelectedAsset={setSelectedAsset}
+                    />
                 )}
 
                 <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-2">
-                        Amount (XLM)
-                    </label>
-                    <input
-                        type="text"
-                        value={amount}
-                        onChange={(e) => setAmount(e.target.value)}
-                        placeholder="0.00"
-                        className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:outline-none transition-colors font-mono text-lg"
-                    />
-                </div>
-
-                <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
-                        Destination Account
+                        Destionation Account
                     </label>
                     <select
                         value={destinationAccount?.publicKey || ""}
@@ -255,6 +183,19 @@ function PaymentModal({
                     </select>
                 </div>
 
+                <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                        Amount to Claim
+                    </label>
+                    <input
+                        type="text"
+                        value={amount}
+                        onChange={(e) => setAmount(e.target.value)}
+                        placeholder="0.00"
+                        className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:outline-none transition-colors font-mono text-lg"
+                    />
+                </div>
+
                 <div className="flex gap-3 pt-4">
                     <button
                         type="button"
@@ -270,7 +211,7 @@ function PaymentModal({
                         disabled={isSubmitting}
                         className="flex-1 px-4 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed transition-colors cursor-pointer"
                     >
-                        {isSubmitting ? "Sending..." : "Send Payment"}
+                        {isSubmitting ? "Creating..." : "Create Claimable"}
                     </button>
                 </div>
             </div>
@@ -278,4 +219,4 @@ function PaymentModal({
     );
 }
 
-export default PaymentModal;
+export default CreateClaimableModal;

@@ -1,4 +1,14 @@
-﻿import {Asset, BASE_FEE, Horizon, Keypair, Operation, Transaction, TransactionBuilder, xdr} from "@stellar/stellar-sdk";
+﻿import {
+    Asset,
+    BASE_FEE,
+    Claimant,
+    Horizon,
+    Keypair,
+    Operation,
+    Transaction,
+    TransactionBuilder,
+    xdr
+} from "@stellar/stellar-sdk";
 import {
     HORIZON_NETWORK_PASSPHRASE,
     HORIZON_URL,
@@ -8,6 +18,7 @@ import {
 import {IKeypair} from "../interfaces/keypair.ts";
 import {AccountBalance} from "../interfaces/account.ts";
 import {IAccountBalanceResponse} from "../interfaces/balance.ts";
+import {ICreateClaimableBalanceResponse} from "../interfaces/claimable-balance.ts";
 
 export class StellarService {
     private server: Horizon.Server;
@@ -25,6 +36,13 @@ export class StellarService {
         this.server = new Horizon.Server(this.horizonUrl, {
             allowHttp: true,
         });
+    }
+
+    getAsset(assetCode: string, assetIssuer: string): Asset {
+        if (assetCode !== "XLM") {
+            return new Asset(assetCode, assetIssuer);
+        }
+        return Asset.native();
     }
 
     private async getAccount(address: string): Promise<Horizon.AccountResponse> {
@@ -93,7 +111,7 @@ export class StellarService {
     }
 
 
-    private transactioBuilder(sourceAccount: Horizon.AccountResponse) {
+    private transactionBuilder(sourceAccount: Horizon.AccountResponse) {
         return new TransactionBuilder(sourceAccount, {
             networkPassphrase: this.networkPassphrase,
             fee: BASE_FEE,
@@ -101,14 +119,14 @@ export class StellarService {
     }
 
     private createPaymentOperation(
-        receiverPubKey: string,
+        amount: string,
         asset: Asset,
-        amount: string
+        destination: string
     ): xdr.Operation<Operation> {
         return Operation.payment({
             amount: amount,
             asset: asset,
-            destination: receiverPubKey,
+            destination: destination,
         });
     }
 
@@ -171,30 +189,174 @@ export class StellarService {
     }
 
 
+    private async checkTrustline(
+        assetIssuer: string,
+        assetCode: string,
+        destinationPubKey: string
+    ): Promise<boolean> {
+        const account = await this.loadAccount(destinationPubKey);
+        const balances = account.balances;
+        const assetToVerify = new Asset(assetCode, assetIssuer);
+
+        for (const balance of balances) {
+            if ("asset_code" in balance) {
+                const asset = new Asset(balance.asset_code, balance.asset_issuer);
+
+                if (asset.equals(assetToVerify)) return true;
+            }
+        }
+
+        return false;
+    }
+
+    createTrustlineOperation(
+        asset: Asset,
+        source: string,
+        amount: string
+    ): xdr.Operation<Operation.ChangeTrust> {
+        const assetLimit = Number(amount) * 100;
+
+        return Operation.changeTrust({
+            asset,
+            source,
+            limit: assetLimit.toString(),
+        });
+    }
+
+    async claimClaimableBalance(
+        claimant: string,
+        claimableBalanceId: string
+    ): Promise<Horizon.HorizonApi.SubmitTransactionResponse> {
+        const claimantKeypair = Keypair.fromSecret(claimant);
+        const claimantAccount = await this.server.loadAccount(
+            claimantKeypair.publicKey()
+        );
+
+        const transaction = new TransactionBuilder(claimantAccount, {
+            fee: (await this.server.fetchBaseFee()).toString(),
+            networkPassphrase: this.networkPassphrase,
+        })
+            .addOperation(
+                Operation.claimClaimableBalance({
+                    balanceId: claimableBalanceId,
+                    source: claimantKeypair.publicKey(),
+                })
+            )
+            .setTimeout(180)
+            .build();
+
+        transaction.sign(claimantKeypair);
+
+        
+        return await this.submitTransaction(transaction);
+
+    }
+
+    async createClaimableBalance(
+        assetCode: string,
+        amount: string,
+        senderSecretKey: string,
+        destinationSecretKey: string
+    ): Promise<ICreateClaimableBalanceResponse> {
+        console.log("Ingresa a create Claimable");
+        const sourceKeypair = Keypair.fromSecret(senderSecretKey);
+        const destinationKeypair = Keypair.fromSecret(destinationSecretKey);
+        const sourceAccount = await this.server.loadAccount(
+            sourceKeypair.publicKey()
+        );
+
+        const asset = this.getAsset(assetCode, sourceKeypair.publicKey());
+        console.log({asset});
+
+        const claimants = [
+            new Claimant(
+                sourceKeypair.publicKey(),
+                Claimant.predicateUnconditional()
+            ),
+            new Claimant(
+                destinationKeypair.publicKey(),
+                Claimant.predicateUnconditional()
+            ),
+        ];
+
+        const createClaimableBalanceOperation = Operation.createClaimableBalance({
+            amount: amount.toString(),
+            asset,
+            claimants: claimants,
+        });
+
+        const transaction = new TransactionBuilder(sourceAccount, {
+            fee: BASE_FEE,
+            networkPassphrase: this.networkPassphrase,
+        })
+            .addOperation(createClaimableBalanceOperation)
+            .setTimeout(180)
+            .build();
+
+        const claimableBalanceId = transaction.getClaimableBalanceId(0);
+
+        transaction.sign(sourceKeypair);
+
+        const response = await this.server.submitTransaction(transaction);
+        return {
+            transaction: response,
+            claimableBalanceId,
+        };
+
+    }
+
     async payment(
         senderPubKey: string,
         senderSecret: string,
         receiverPubKey: string,
-        amount: string
+        receiverSecret: string,
+        amount: string,
+        assetCode: string
     ): Promise<Horizon.HorizonApi.SubmitTransactionResponse> {
         const sourceAccount = await this.loadAccount(senderPubKey);
         const sourceKeypair = Keypair.fromSecret(senderSecret);
+        let hasTrustline: boolean = true;
 
-        const transactionBuilder = this.transactioBuilder(sourceAccount);
+        const issuerPubKey = "GCWLJT2T5ZZ5A7BDZQTGL7Z5VGAYVLR6EYRWD4MPDTDWDYJLNSDJLKQ3";
+        //const asset = this.getAsset(assetCode, receiverPubKey);
+        const asset = this.getAsset(assetCode, issuerPubKey);
+        const transactionBuilder = this.transactionBuilder(sourceAccount);
+
+        if (asset.code !== "XLM" && asset.issuer !== receiverPubKey) {
+            hasTrustline = await this.checkTrustline(
+                receiverPubKey,
+                assetCode,
+                asset.issuer
+            );
+
+            if (!hasTrustline) {
+                const changeTrustOp = this.createTrustlineOperation(
+                    asset,
+                    receiverPubKey,
+                    amount
+                );
+                transactionBuilder.addOperation(changeTrustOp);
+            }
+        }
+
         const paymentOperation = this.createPaymentOperation(
-            receiverPubKey,
-            Asset.native(),
-            amount
+            amount,
+            asset,
+            receiverPubKey
         );
-        const transaction = transactionBuilder
-            .addOperation(paymentOperation)
-            .setTimeout(180)
-            .build();
+
+        transactionBuilder.addOperation(paymentOperation);
+
+        const transaction = transactionBuilder.setTimeout(180).build();
 
         transaction.sign(sourceKeypair);
+
+        if (!hasTrustline) {
+            const recieveKeypair = Keypair.fromSecret(receiverSecret);
+            transaction.sign(recieveKeypair);
+        }
+
         return await this.submitTransaction(transaction);
-
-
     }
 
     private async submitTransaction(transaction: Transaction): Promise<Horizon.HorizonApi.SubmitTransactionResponse> {
