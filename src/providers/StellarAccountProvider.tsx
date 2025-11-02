@@ -5,12 +5,15 @@ import {
   getCurrentAccountFromStorage,
   saveCurrentAccount,
 } from "../utils/local-storage.ts";
+import * as React from "react";
 
 interface StellarContextType {
-  currentAccount: string;
-  setCurrentAccount: (name: string) => void;
-  getAccount: (name: string) => IAccount | null;
-  getCurrentAccountData: () => IAccount | null;
+    currentAccount: string;
+    hashId: string;
+    setHashId: React.Dispatch<React.SetStateAction<string>>;
+    setCurrentAccount: (name: string) => void;
+    getAccount: (name: string) => IAccount | null;
+    getCurrentAccountData: () => IAccount | null;
 }
 
 const StellarAccountContext = createContext<StellarContextType | undefined>(
@@ -48,12 +51,17 @@ export const StellarAccountProvider: React.FC<{
     return getAccountFromStorage(currentAccount);
   }, [currentAccount]);
 
-  const value: StellarContextType = {
-    currentAccount,
-    setCurrentAccount,
-    getAccount,
-    getCurrentAccountData,
-  };
+
+    const [hashId, setHashId] = useState<string>("");
+
+    const value: StellarContextType = {
+        currentAccount,
+        hashId,
+        setHashId,
+        setCurrentAccount,
+        getAccount,
+        getCurrentAccountData,
+    };
 
   return (
     <StellarAccountContext value={value}>{children}</StellarAccountContext>
