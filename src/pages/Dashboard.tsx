@@ -1,6 +1,8 @@
 ﻿import { CarsList } from "../components/CarList";
 import { CreateCarForm } from "../components/CreateCarForm";
 import StellarExpertLink from "../components/StellarExpertLink";
+import SetCommissionModal from "../components/SetCommissionModal";
+import WithdrawCommissionModal from "../components/WithdrawCommissionModal";
 import useModal from "../hooks/useModal";
 import { ICar } from "../interfaces/car";
 import { CarStatus } from "../interfaces/car-status";
@@ -11,11 +13,15 @@ import { stellarService } from "../services/stellar.service";
 import { walletService } from "../services/wallet.service";
 import { ONE_XLM_IN_STROOPS } from "../utils/xlm-in-stroops";
 import {useStellarAccounts} from "../providers/StellarAccountProvider.tsx";
+import { useState } from "react";
 
 export default function Dashboard() {
     const { hashId, cars, walletAddress, setCars, setHashId, selectedRole } =
         useStellarAccounts();
     const { showModal, openModal, closeModal } = useModal();
+    const commissionModal = useModal();
+    const withdrawModal = useModal();
+    const [availableCommission, setAvailableCommission] = useState<number>(0);
 
     const handleCreateCar = async (formData: CreateCar) => {
         const { brand, model, color, passengers, pricePerDay, ac, ownerAddress } =
@@ -48,6 +54,40 @@ export default function Dashboard() {
         closeModal();
     };
 
+    const handleSetCommission = async (commission: number) => {
+        const contractClient =
+            await stellarService.buildClient<IRentACarContract>(walletAddress);
+
+        const result = await contractClient.set_admin_commission({
+            commission: commission * ONE_XLM_IN_STROOPS,
+        });
+        const xdr = result.toXDR();
+
+        const signedTx = await walletService.signTransaction(xdr);
+        const txHash = await stellarService.submitTransaction(signedTx.signedTxXdr);
+
+        setHashId(txHash as string);
+        commissionModal.closeModal();
+    };
+
+    const handleWithdrawCommission = async (amountInStroops: number) => {
+        const contractClient =
+            await stellarService.buildClient<IRentACarContract>(walletAddress);
+
+        const result = await contractClient.withdraw_admin_commission({
+            amount: amountInStroops,
+        });
+        const xdr = result.toXDR();
+
+        const signedTx = await walletService.signTransaction(xdr);
+        const txHash = await stellarService.submitTransaction(signedTx.signedTxXdr);
+
+        setHashId(txHash as string);
+        withdrawModal.closeModal();
+        // Refresh available commission (would need a getter function in contract)
+        // For now, just close the modal
+    };
+
     return (
         <div className="container mx-auto px-4 py-8">
             <div className="flex justify-between items-center mb-6">
@@ -55,12 +95,26 @@ export default function Dashboard() {
                     Cars Catalog
                 </h1>
                 {selectedRole === UserRole.ADMIN && (
-                    <button
-                        onClick={openModal}
-                        className="group px-6 py-3 bg-indigo-600 text-white font-semibold rounded-xl shadow-lg hover:bg-indigo-700 hover:shadow-xl disabled:bg-slate-300 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-105 disabled:transform-none cursor-pointer"
-                    >
-                        <span className="flex items-center gap-2">Add Car</span>
-                    </button>
+                    <div className="flex gap-3">
+                        <button
+                            onClick={commissionModal.openModal}
+                            className="group px-6 py-3 bg-purple-600 text-white font-semibold rounded-xl shadow-lg hover:bg-purple-700 hover:shadow-xl transition-all duration-200 transform hover:scale-105 cursor-pointer"
+                        >
+                            <span className="flex items-center gap-2">Set Commission</span>
+                        </button>
+                        <button
+                            onClick={withdrawModal.openModal}
+                            className="group px-6 py-3 bg-green-600 text-white font-semibold rounded-xl shadow-lg hover:bg-green-700 hover:shadow-xl transition-all duration-200 transform hover:scale-105 cursor-pointer"
+                        >
+                            <span className="flex items-center gap-2">Withdraw Commission</span>
+                        </button>
+                        <button
+                            onClick={openModal}
+                            className="group px-6 py-3 bg-indigo-600 text-white font-semibold rounded-xl shadow-lg hover:bg-indigo-700 hover:shadow-xl disabled:bg-slate-300 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-105 disabled:transform-none cursor-pointer"
+                        >
+                            <span className="flex items-center gap-2">Add Car</span>
+                        </button>
+                    </div>
                 )}
             </div>
 
@@ -68,6 +122,21 @@ export default function Dashboard() {
 
             {showModal && (
                 <CreateCarForm onCreateCar={handleCreateCar} onCancel={closeModal} />
+            )}
+
+            {commissionModal.showModal && (
+                <SetCommissionModal
+                    closeModal={commissionModal.closeModal}
+                    onSetCommission={handleSetCommission}
+                />
+            )}
+
+            {withdrawModal.showModal && (
+                <WithdrawCommissionModal
+                    closeModal={withdrawModal.closeModal}
+                    onWithdraw={handleWithdrawCommission}
+                    availableAmount={availableCommission}
+                />
             )}
 
             {hashId && <StellarExpertLink url={hashId} />}

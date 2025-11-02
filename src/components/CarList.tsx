@@ -51,11 +51,14 @@ export const CarsList = ({ cars }: CarsListProps) => {
         const contractClient =
             await stellarService.buildClient<IRentACarContract>(walletAddress);
 
+        const rentalAmount = car.pricePerDay * totalDaysToRent * ONE_XLM_IN_STROOPS;
+        
+        // Note: Commission is automatically added to the deposit by the contract
         const result = await contractClient.rental({
             renter,
             owner: car.ownerAddress,
             total_days_to_rent: totalDaysToRent,
-            amount: car.pricePerDay * totalDaysToRent * ONE_XLM_IN_STROOPS,
+            amount: rentalAmount,
         });
         const xdr = result.toXDR();
 
@@ -66,6 +69,29 @@ export const CarsList = ({ cars }: CarsListProps) => {
             prev.map((c) =>
                 c.ownerAddress === car.ownerAddress
                     ? { ...c, status: CarStatus.RENTED }
+                    : c
+            )
+        );
+        setHashId(txHash as string);
+    };
+
+    const handleReturnCar = async (car: ICar) => {
+        const contractClient =
+            await stellarService.buildClient<IRentACarContract>(walletAddress);
+
+        const result = await contractClient.return_car({
+            renter: walletAddress,
+            owner: car.ownerAddress,
+        });
+        const xdr = result.toXDR();
+
+        const signedTx = await walletService.signTransaction(xdr);
+        const txHash = await stellarService.submitTransaction(signedTx.signedTxXdr);
+
+        setCars((prev) =>
+            prev.map((c) =>
+                c.ownerAddress === car.ownerAddress
+                    ? { ...c, status: CarStatus.AVAILABLE }
                     : c
             )
         );
@@ -109,18 +135,27 @@ export const CarsList = ({ cars }: CarsListProps) => {
             );
         }
 
-        if (
-            selectedRole === UserRole.RENTER &&
-            car.status === CarStatus.AVAILABLE
-        ) {
-            return (
-                <button
-                    onClick={() => void handleRent(car, walletAddress, 3)}
-                    className="px-3 py-1 bg-blue-600 text-white rounded font-semibold hover:bg-blue-700 transition-colors cursor-pointer"
-                >
-                    Rent
-                </button>
-            );
+        if (selectedRole === UserRole.RENTER) {
+            if (car.status === CarStatus.AVAILABLE) {
+                return (
+                    <button
+                        onClick={() => void handleRent(car, walletAddress, 3)}
+                        className="px-3 py-1 bg-blue-600 text-white rounded font-semibold hover:bg-blue-700 transition-colors cursor-pointer"
+                    >
+                        Rent
+                    </button>
+                );
+            }
+            if (car.status === CarStatus.RENTED) {
+                return (
+                    <button
+                        onClick={() => void handleReturnCar(car)}
+                        className="px-3 py-1 bg-orange-600 text-white rounded font-semibold hover:bg-orange-700 transition-colors cursor-pointer"
+                    >
+                        Return
+                    </button>
+                );
+            }
         }
 
         return null;

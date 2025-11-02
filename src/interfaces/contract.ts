@@ -46,4 +46,24 @@ export interface IRentACarContract extends IBaseContractClient {
         owner: string;
         amount: number;
     }) => Promise<this>;
+
+    set_admin_commission: ({
+        commission,
+    }: {
+        commission: number;
+    }) => Promise<this>;
+
+    withdraw_admin_commission: ({
+        amount,
+    }: {
+        amount: number;
+    }) => Promise<this>;
+
+    return_car: ({
+        renter,
+        owner,
+    }: {
+        renter: string;
+        owner: string;
+    }) => Promise<this>;
 }
