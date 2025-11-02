@@ -4,7 +4,7 @@ use crate::methods::token::token::token_transfer;
 use crate::storage::admin::{has_admin, read_admin, write_admin, read_admin_commission, write_admin_commission, read_admin_available_to_withdraw, write_admin_available_to_withdraw};
 use crate::storage::car::{has_car, read_car, remove_car, write_car};
 use crate::storage::contract_balance::{read_contract_balance, write_contract_balance};
-use crate::storage::rental::write_rental;
+use crate::storage::rental::{write_rental, remove_rental, has_rental};
 use crate::storage::structs::car::Car;
 use crate::storage::structs::rental::Rental;
 use crate::storage::token::write_token;
@@ -159,6 +159,11 @@ impl RentACarContractTrait for RentACarContract {
 
         let mut car = read_car(&env, &owner)?;
 
+        // Owner can only withdraw when car is returned (Available)
+        if car.car_status != CarStatus::Available {
+            return Err(Error::CarAlreadyRented);
+        }
+
         if amount > car.available_to_withdraw {
             return Err(Error::InsufficientBalance);
         }
@@ -228,6 +233,36 @@ impl RentACarContractTrait for RentACarContract {
         write_contract_balance(&env, &contract_balance);
 
         token_transfer(&env, &env.current_contract_address(), &admin, &amount)?;
+        Ok(())
+    }
+
+    fn return_car(env: &Env, renter: Address, owner: Address) -> Result<(), Error> {
+        renter.require_auth();
+
+        if renter == owner {
+            return Err(Error::SelfRentalNotAllowed);
+        }
+
+        if !has_car(env, &owner) {
+            return Err(Error::CarNotFound);
+        }
+
+        if !has_rental(env, &renter, &owner) {
+            return Err(Error::RentalNotFound);
+        }
+
+        let mut car = read_car(env, &owner)?;
+
+        if car.car_status != CarStatus::Rented {
+            return Err(Error::RentalNotFound);
+        }
+
+        car.car_status = CarStatus::Available;
+
+        write_car(env, &owner, &car);
+        remove_rental(env, &renter, &owner);
+
+        events::rental::car_returned(env, renter, owner);
         Ok(())
     }
 }
