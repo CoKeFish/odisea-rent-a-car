@@ -8,7 +8,7 @@
 
 > Aplicación descentralizada (dApp) para el alquiler de vehículos construida sobre la red Stellar utilizando contratos inteligentes de Soroban. Este proyecto implementa un sistema completo de gestión de alquiler de autos con roles de administrador, propietarios y arrendatarios.
 
-![Vista previa de la aplicación](images/Screenshot_8.png)
+![Vista previa de la aplicación](images/Banner.png)
 
 ---
 
@@ -30,7 +30,9 @@
 
 ## Descripción del proyecto
 
-Esta aplicación permite gestionar el alquiler de vehículos de forma descentralizada utilizando la tecnología blockchain de Stellar. Los usuarios pueden:
+Esta aplicación permite gestionar el alquiler de vehículos de forma descentralizada utilizando la tecnología blockchain de Stellar.
+
+Los usuarios pueden:
 
 | Rol | Funcionalidades |
 |-----|----------------|
@@ -40,15 +42,15 @@ Esta aplicación permite gestionar el alquiler de vehículos de forma descentral
 
 ---
 
-## Últimas características
+## Otras características implementadas
 
 ### Mejoras en experiencia de usuario
 
 <details>
-<summary><strong>Sistema de notificaciones mejorado</strong></summary>
+<summary><strong>Sistema de notificaciones toast</strong></summary>
 
 Reemplazo de alerts por toast notifications no bloqueantes para mejor feedback visual. Todas las operaciones muestran mensajes claros de éxito o error sin interrumpir el flujo del usuario.
-
+![Vista previa de la aplicación](images/toast.png)
 </details>
 
 <details>
@@ -73,7 +75,7 @@ Protección contra doble-clic y ejecuciones simultáneas con flags de estado. Lo
 </details>
 
 <details>
-<summary><strong>Campos numéricos mejorados</strong></summary>
+<summary><strong>Campos numéricos intuitivos</strong></summary>
 
 Ahora puedes borrar completamente los campos y escribir desde cero sin problemas. Los campos usan valores string internamente, permitiendo una edición fluida y natural.
 
@@ -96,19 +98,14 @@ Se deshabilitan automáticamente durante operaciones y cuando no hay fondos disp
 
 ## Recomendación para desarrollo y pruebas
 
-Para una mejor experiencia al probar la aplicación, **recomendamos crear 3 cuentas diferentes en Freighter** y mantenerlas conectadas simultáneamente:
+> **IMPORTANTE**: Por comodidad al probar la aplicación, **recomiendo crear 3 cuentas diferentes en Freighter** y mantenerlas conectadas simultáneamente.
 
-1. **Wallet de Administrador**: Para configurar comisiones y gestionar vehículos
-2. **Wallet de Owner**: Para agregar vehículos y recibir pagos por alquileres
-3. **Wallet de Renter**: Para alquilar y devolver vehículos
+**Wallets recomendadas:**
 
-De esta manera, puedes cambiar fácilmente entre roles desde la interfaz sin necesidad de desconectar y reconectar wallets. Freighter permite tener múltiples cuentas conectadas al mismo tiempo, facilitando las pruebas de las diferentes funcionalidades según el rol seleccionado.
+- **Wallet de Administrador**: Para configurar comisiones y gestionar vehículos
+- **Wallet de Owner**: Para agregar vehículos y recibir pagos por alquileres
+- **Wallet de Renter**: Para alquilar y devolver vehículos
 
-**Pasos para configurar:**
-1. Abre Freighter y crea o importa 3 cuentas diferentes
-2. Asegúrate de que cada cuenta tenga fondos en la red de prueba (Testnet)
-3. Conecta todas las cuentas a la dApp
-4. Selecciona el rol correspondiente en la interfaz
 
 ---
 
@@ -119,10 +116,11 @@ De esta manera, puedes cambiar fácilmente entre roles desde la interfaz sin nec
 El Administrador puede configurar una comisión monetaria fija por cada alquiler. Esta comisión se suma automáticamente al depósito que paga el arrendatario, garantizando ingresos para la plataforma.
 
 **Funcionalidades:**
-- Configuración de comisión por el Administrador
-- Comisión automática en cada alquiler
-- Retiro de comisiones acumuladas en cualquier momento
-- Consulta de comisión disponible para retiro
+
+- *Configuración de comisión por el Administrador*
+- *Comisión automática en cada alquiler*
+- *Retiro de comisiones acumuladas en cualquier momento*
+- *Consulta de comisión disponible para retiro*
 
 ![Configurar Comisión](images/set-commission.png)
 
@@ -133,9 +131,10 @@ El Administrador puede configurar una comisión monetaria fija por cada alquiler
 Al alquilar un vehículo, la comisión configurada se suma automáticamente al depósito total. El Owner recibe el 100% del monto del alquiler (sin deducción de comisión), mientras que el Administrador acumula la comisión configurada.
 
 **Características:**
-- Cálculo automático: `Depósito Total = Monto Alquiler + Comisión`
-- El Owner recibe el monto completo del alquiler
-- La comisión se acumula en la cuenta del Administrador
+
+- *Cálculo automático: `Depósito Total = Monto Alquiler + Comisión`*
+- *El Owner recibe el monto completo del alquiler*
+- *La comisión se acumula en la cuenta del Administrador*
 
 ![Alquiler con Comisión](images/rental-with-commission.png)
 
@@ -146,10 +145,11 @@ Al alquilar un vehículo, la comisión configurada se suma automáticamente al d
 El Administrador puede consultar y retirar las comisiones acumuladas en cualquier momento a través de una interfaz intuitiva.
 
 **Funcionalidades:**
-- Visualización de comisión disponible en tiempo real
-- Modal para retirar comisiones
-- Validación de fondos disponibles
-- Botón deshabilitado cuando no hay fondos disponibles
+
+- *Visualización de comisión disponible en tiempo real*
+- *Modal para retirar comisiones*
+- *Validación de fondos disponibles*
+- *Botón deshabilitado cuando no hay fondos disponibles*
 
 ![Retiro de Comisión](images/withdraw-commission.png)
 
@@ -160,9 +160,10 @@ El Administrador puede consultar y retirar las comisiones acumuladas en cualquie
 Los arrendatarios pueden devolver los vehículos que han alquilado, cambiando el estado del vehículo de "Rented" a "Available".
 
 **Funcionalidades:**
-- Botón "Return" visible para arrendatarios en vehículos alquilados
-- Cambio automático de estado del vehículo
-- Actualización en tiempo real del catálogo
+
+- *Botón "Return" visible para arrendatarios en vehículos alquilados*
+- *Cambio automático de estado del vehículo*
+- *Actualización en tiempo real del catálogo*
 
 ![Devolver Auto](images/return-car.png)
 
@@ -176,10 +177,11 @@ Los propietarios solo pueden retirar sus fondos cuando el vehículo ha sido devu
 - No hay fondos disponibles para retirar
 
 **Funcionalidades:**
-- Validación en el contrato: solo permite retiro si el auto está disponible
-- Botón "Withdraw" visible únicamente cuando hay fondos disponibles
-- Modal para especificar monto a retirar
-- Visualización de fondos disponibles en tiempo real
+
+- *Validación en el contrato: solo permite retiro si el auto está disponible*
+- *Botón "Withdraw" visible únicamente cuando hay fondos disponibles*
+- *Modal para especificar monto a retirar*
+- *Visualización de fondos disponibles en tiempo real*
 
 ![Retiro de Owner](images/withdraw-owner.png)
 
@@ -199,6 +201,8 @@ Antes de instalar y ejecutar el proyecto, asegúrate de tener instalado:
 | **Stellar CLI** | Herramienta de línea de comandos de Stellar | [Stellar CLI](https://github.com/stellar/stellar-core) |
 | **Scaffold Stellar CLI Plugin** | Plugin para desarrollo de dApps | [Scaffold Stellar](https://github.com/AhaLabs/scaffold-stellar) |
 
+> **Nota importante**: Todas estas herramientas son necesarias para desarrollar y desplegar el proyecto. Asegúrate de tenerlas instaladas antes de continuar.
+
 ---
 
 ## Instalación
@@ -210,13 +214,17 @@ git clone <tu-repositorio>
 cd stellar0dApp
 ```
 
+---
+
 ### 2. Configurar variables de entorno
 
 ```bash
 cp .env.example .env
 ```
 
-Edita el archivo `.env` con tus configuraciones de red y contratos.
+**Importante:** Edita el archivo `.env` con tus configuraciones de red y contratos antes de continuar.
+
+---
 
 ### 3. Instalar dependencias del frontend
 
@@ -224,11 +232,15 @@ Edita el archivo `.env` con tus configuraciones de red y contratos.
 npm install
 ```
 
+---
+
 ### 4. Instalar dependencias de los contratos
 
 ```bash
 npm run install:contracts
 ```
+
+---
 
 ### 5. Compilar el contrato
 
@@ -236,6 +248,8 @@ npm run install:contracts
 cd contracts/rent-a-car
 cargo build --target wasm32-unknown-unknown --release
 ```
+
+> **Nota**: Este paso puede tardar varios minutos la primera vez que se ejecuta.
 
 ---
 
@@ -249,17 +263,22 @@ Para ejecutar el proyecto en modo desarrollo:
 npm run dev
 ```
 
-Esto iniciará:
-- El servidor de desarrollo de Vite
-- El watcher de Scaffold Stellar para reconstruir los clientes del contrato
+**Lo que se inicia:**
+
+- *El servidor de desarrollo de Vite*
+- *El watcher de Scaffold Stellar para reconstruir los clientes del contrato*
 
 Abre tu navegador en la URL que se muestra en la consola (generalmente `http://localhost:5173`).
+
+---
 
 ### Compilar para producción
 
 ```bash
 npm run build
 ```
+
+---
 
 ### Preview de producción
 
@@ -284,6 +303,13 @@ pub struct Car {
 }
 ```
 
+**Campos importantes:**
+
+- `car_status`: Estado actual del vehículo
+- `available_to_withdraw`: Monto disponible para retiro por el owner
+
+---
+
 #### Rental (Alquiler)
 
 ```rust
@@ -293,6 +319,13 @@ pub struct Rental {
 }
 ```
 
+**Campos importantes:**
+
+- `total_days_to_rent`: Días totales del alquiler
+- `amount`: Monto del alquiler (en stroops)
+
+---
+
 #### CarStatus (Estado del vehículo)
 
 | Estado | Descripción |
@@ -301,9 +334,13 @@ pub struct Rental {
 | `Rented` | Actualmente alquilado |
 | `Maintenance` | En mantenimiento |
 
+---
+
 ### Funciones del contrato
 
 #### Funciones públicas (cualquiera puede llamar)
+
+Estas funciones no requieren autenticación y pueden ser llamadas por cualquier usuario:
 
 | Función | Descripción |
 |---------|-------------|
@@ -311,7 +348,11 @@ pub struct Rental {
 | `get_admin_available_to_withdraw()` | Obtiene la comisión disponible del Admin |
 | `get_owner_available_to_withdraw(owner)` | Obtiene los fondos disponibles del Owner |
 
+---
+
 #### Funciones de administrador
+
+Requieren autenticación del administrador:
 
 | Función | Descripción |
 |---------|-------------|
@@ -319,14 +360,22 @@ pub struct Rental {
 | `withdraw_admin_commission(amount)` | Retira comisiones acumuladas |
 | `remove_car(owner)` | Elimina un vehículo del catálogo |
 
+---
+
 #### Funciones de owner
+
+Requieren autenticación del propietario:
 
 | Función | Descripción |
 |---------|-------------|
 | `add_car(owner, price_per_day)` | Agrega un vehículo al catálogo |
 | `payout_owner(owner, amount)` | Retira fondos (solo si el auto está disponible) |
 
+---
+
 #### Funciones de renter
+
+Requieren autenticación del arrendatario:
 
 | Función | Descripción |
 |---------|-------------|
@@ -337,49 +386,14 @@ pub struct Rental {
 
 ## Funcionalidades implementadas
 
-### Gestión de vehículos
+El proyecto incluye todas las funcionalidades principales para la gestión completa del alquiler de vehículos:
 
-- [x] Agregar vehículos al catálogo (Owner)
-- [x] Eliminar vehículos del catálogo (Admin)
-- [x] Consultar estado de vehículos
-- [x] Actualización de estado en tiempo real
-
-### Sistema de alquiler
-
-- [x] Alquilar vehículos por días
-- [x] Cálculo automático de precio total
-- [x] Validación de disponibilidad
-- [x] Cambio automático de estado a "Rented"
-
-### Sistema de comisiones
-
-- [x] Configuración de comisión por el Administrador
-- [x] Comisión automática en cada alquiler
-- [x] Acumulación de comisiones
-- [x] Consulta de comisiones disponibles
-- [x] Retiro de comisiones acumuladas
-
-### Devolución de vehículos
-
-- [x] Devolución de vehículos por arrendatarios
-- [x] Cambio automático de estado a "Available"
-- [x] Eliminación de registro de alquiler
-
-### Gestión de fondos
-
-- [x] Retiro de fondos por Owners (solo cuando el auto está disponible)
-- [x] Retiro de comisiones por Administrador
-- [x] Validación de fondos disponibles
-- [x] Visualización de fondos en tiempo real
-
-### Interfaz de usuario
-
-- [x] Selección de roles (Admin, Owner, Renter)
-- [x] Dashboard con funcionalidades por rol
-- [x] Modales para todas las operaciones
-- [x] Validación de formularios
-- [x] Manejo de errores
-- [x] Enlaces a StellarExpert para transacciones
+* **Gestión de vehículos**: Agregar y eliminar vehículos del catálogo, consulta de estados en tiempo real
+* **Sistema de alquiler**: Alquiler por días con cálculo automático de precios y validación de disponibilidad
+* **Sistema de comisiones**: Configuración de comisiones, acumulación automática y retiro de ganancias por el Administrador
+* **Devolución de vehículos**: Los arrendatarios pueden devolver vehículos, cambiando su estado automáticamente
+* **Gestión de fondos**: Retiros restringidos para Owners (solo cuando el auto está disponible), visualización de fondos en tiempo real
+* **Interfaz de usuario**: Dashboard por roles, modales intuitivos, validación de formularios, manejo robusto de errores y notificaciones toast
 
 ---
 
@@ -444,72 +458,90 @@ cd contracts/rent-a-car
 cargo test --lib
 ```
 
+> **Tip**: Puedes ejecutar tests específicos usando `cargo test --lib <nombre_del_test>`
+
+---
+
 ### Tests implementados
 
 #### Tests de administración
+
+*Funciones administrativas*
+
 - `test_set_admin_commission_successfully`
 - `test_withdraw_admin_commission_successfully`
 - `test_get_admin_available_to_withdraw_after_rental`
 
+---
+
 #### Tests de vehículos
+
+*Gestión del catálogo de vehículos*
+
 - `test_add_car_successfully`
 - `test_remove_car_deletes_from_storage`
 - `test_get_car_status_returns_available`
 
+---
+
 #### Tests de alquiler
+
+*Proceso de alquiler y devolución*
+
 - `test_rental_car_successfully`
 - `test_rental_with_admin_commission`
 - `test_return_car_successfully`
 
+---
+
 #### Tests de retiros
+
+*Validación de retiros de fondos*
+
 - `test_payout_owner_successfully`
 - `test_payout_owner_when_car_is_rented_fails`
 - `test_get_owner_available_to_withdraw_car_available_with_funds`
 
+---
+
 #### Tests de autenticación
+
+*Seguridad y permisos*
+
 - Tests para verificar que solo usuarios autorizados pueden ejecutar funciones específicas
 
 ---
 
 ## Tecnologías utilizadas
 
-### Backend (Smart Contract)
+**Backend (Smart Contract):**
+- *Rust* con *Soroban SDK* para contratos inteligentes en Stellar
+- *Stellar XDR* para serialización de datos
 
-| Tecnología | Descripción |
-|------------|-------------|
-| **Rust** | Lenguaje de programación |
-| **Soroban SDK** | Framework para contratos inteligentes en Stellar |
-| **Stellar XDR** | Serialización de datos |
+**Frontend:**
+- *React 19* con *TypeScript* para la interfaz de usuario
+- *Vite* como build tool y dev server
+- *Stellar SDK* y *Stellar Wallets Kit* para integración con wallets (Freighter)
 
-### Frontend
+**Herramientas de desarrollo:**
+- *Scaffold Stellar* como framework base
+- *Cargo* y *npm* para gestión de dependencias
 
-| Tecnología | Descripción |
-|------------|-------------|
-| **React 19** | Biblioteca para construir interfaces |
-| **TypeScript** | Tipado estático |
-| **Vite** | Build tool y dev server |
-| **Stellar SDK** | Cliente para interactuar con Stellar |
-| **Stellar Wallets Kit** | Integración con wallets de Stellar (Freighter, etc.) |
+**Red:**
+- *Testnet de Stellar* para pruebas y desarrollo
 
-### Herramientas
+---
 
-| Tecnología | Descripción |
-|------------|-------------|
-| **Scaffold Stellar** | Framework para desarrollo de dApps en Stellar |
-| **Cargo** | Gestor de paquetes de Rust |
-| **npm** | Gestor de paquetes de Node.js |
+## Autor
 
-### Red
-
-El proyecto está configurado para trabajar con:
-- **Testnet de Stellar**
+**Rodion Romanovich**
 
 ---
 
 ## Agradecimientos
 
-- **Núcleo** - Por la guía y soporte durante el desarrollo
-- **Comunidad de Stellar** - Por la documentación y herramientas
-- **Equipo de Scaffold Stellar** - Por el framework de desarrollo
+- **Núcleo** - Por la oportunidad de realizar el bootcamp
+- **Comunidad de Stellar** - Por la documentación y herramientas y ser una tecnologia tan divertida
+- **Javeblockchain** - Porque no crei conocer gente tan maravillosa 
 
 ---
