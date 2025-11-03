@@ -14,7 +14,7 @@ import { stellarService } from "../services/stellar.service";
 import { walletService } from "../services/wallet.service";
 import { ONE_XLM_IN_STROOPS } from "../utils/xlm-in-stroops";
 import {useStellarAccounts} from "../providers/StellarAccountProvider.tsx";
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 
 export default function Dashboard() {
     const { hashId, cars, walletAddress, setCars, setHashId, selectedRole } =
@@ -23,24 +23,45 @@ export default function Dashboard() {
     const commissionModal = useModal();
     const withdrawModal = useModal();
     const [availableCommission, setAvailableCommission] = useState<number>(0);
+    const [isLoadingCommission, setIsLoadingCommission] = useState<boolean>(false);
+    const [isCreatingCar, setIsCreatingCar] = useState<boolean>(false);
+    const lastHashIdRef = useRef<string | undefined>(undefined);
 
     useEffect(() => {
-        if (selectedRole === UserRole.ADMIN && walletAddress) {
-            (async () => {
-                try {
-                    const value = await stellarService.getAdminAvailableToWithdraw(walletAddress);
-                    console.log("Available commission:", value);
-                    setAvailableCommission(value);
-                } catch (error) {
-                    console.error("Error fetching available commission:", error);
-                    setAvailableCommission(0);
-                }
-            })();
+        // Prevenir ejecuciones duplicadas - solo ejecutar si hashId cambió realmente
+        if (!selectedRole || selectedRole !== UserRole.ADMIN || !walletAddress || isLoadingCommission) {
+            return;
         }
-    }, [selectedRole, walletAddress, hashId]);
+
+        // Prevenir ejecución duplicada si hashId no cambió
+        if (hashId === lastHashIdRef.current) {
+            return;
+        }
+
+        lastHashIdRef.current = hashId;
+        setIsLoadingCommission(true);
+        
+        (async () => {
+            try {
+                const value = await stellarService.getAdminAvailableToWithdraw(walletAddress);
+                setAvailableCommission(value);
+            } catch (error) {
+                console.error("Error fetching available commission:", error);
+                setAvailableCommission(0);
+            } finally {
+                setIsLoadingCommission(false);
+            }
+        })();
+    }, [selectedRole, walletAddress, hashId, isLoadingCommission]);
 
 
     const handleCreateCar = async (formData: CreateCar) => {
+        // Prevenir ejecuciones duplicadas
+        if (isCreatingCar) {
+            return;
+        }
+
+        setIsCreatingCar(true);
         try {
             const { brand, model, color, passengers, pricePerDay, ac, ownerAddress } =
                 formData;
@@ -81,6 +102,8 @@ export default function Dashboard() {
             const errorMessage = error instanceof Error ? error.message : "Error al agregar el vehículo. Por favor intenta de nuevo.";
             toast.error(errorMessage);
             // No cerrar el modal si hay error para que el usuario pueda intentar de nuevo
+        } finally {
+            setIsCreatingCar(false);
         }
     };
 

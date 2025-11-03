@@ -31,12 +31,16 @@ export default function RentCarModal({
 
         try {
             await onRent(car, days);
-            toast.success("Auto alquilado exitosamente.");
+            // El toast de éxito se maneja en CarList
             closeModal();
         } catch (error) {
-            console.error("Error renting car:", error);
-            const errorMessage = error instanceof Error ? error.message : "Error al alquilar el auto. Por favor intenta de nuevo.";
-            toast.error(errorMessage);
+            // Solo mostrar error si el handler padre no lo maneja
+            // Los errores de validación locales se muestran aquí
+            if (!(error instanceof Error && error.message.includes("transacción"))) {
+                console.error("Error renting car:", error);
+                const errorMessage = error instanceof Error ? error.message : "Error al alquilar el auto. Por favor intenta de nuevo.";
+                toast.error(errorMessage);
+            }
         } finally {
             setIsSubmitting(false);
         }

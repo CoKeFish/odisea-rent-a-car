@@ -49,12 +49,16 @@ export default function WithdrawOwnerModal({
 
         try {
             await onWithdraw(ownerAddress, amountInStroops);
-            toast.success("Retiro realizado exitosamente.");
+            // El toast de éxito se maneja en CarList
             closeModal();
         } catch (error) {
-            console.error("Error withdrawing funds:", error);
-            const errorMessage = error instanceof Error ? error.message : "Error al retirar fondos. Por favor intenta de nuevo.";
-            toast.error(errorMessage);
+            // Solo mostrar error si el handler padre no lo maneja
+            // Los errores de validación locales se muestran aquí
+            if (!(error instanceof Error && error.message.includes("transacción"))) {
+                console.error("Error withdrawing funds:", error);
+                const errorMessage = error instanceof Error ? error.message : "Error al retirar fondos. Por favor intenta de nuevo.";
+                toast.error(errorMessage);
+            }
         } finally {
             setIsSubmitting(false);
         }

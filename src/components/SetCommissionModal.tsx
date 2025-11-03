@@ -20,12 +20,16 @@ export default function SetCommissionModal({
 
         try {
             await onSetCommission(commission);
-            toast.success("Comisión configurada exitosamente.");
+            // El toast de éxito se maneja en Dashboard
             closeModal();
         } catch (error) {
-            console.error("Error setting commission:", error);
-            const errorMessage = error instanceof Error ? error.message : "Error al configurar la comisión. Por favor intenta de nuevo.";
-            toast.error(errorMessage);
+            // Solo mostrar error si el handler padre no lo maneja
+            // Los errores de validación locales se muestran aquí
+            if (!(error instanceof Error && error.message.includes("transacción"))) {
+                console.error("Error setting commission:", error);
+                const errorMessage = error instanceof Error ? error.message : "Error al configurar la comisión. Por favor intenta de nuevo.";
+                toast.error(errorMessage);
+            }
         } finally {
             setIsSubmitting(false);
         }

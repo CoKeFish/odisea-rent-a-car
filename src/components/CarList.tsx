@@ -24,8 +24,16 @@ export const CarsList = ({ cars }: CarsListProps) => {
     const withdrawModal = useModal();
     const [selectedCar, setSelectedCar] = useState<ICar | null>(null);
     const [ownerAvailableAmount, setOwnerAvailableAmount] = useState<number>(0);
+    const [isDeleting, setIsDeleting] = useState<string | null>(null);
+    const [isReturning, setIsReturning] = useState<string | null>(null);
 
     const handleDelete = async (owner: string) => {
+        // Prevenir ejecuciones duplicadas
+        if (isDeleting === owner) {
+            return;
+        }
+        
+        setIsDeleting(owner);
         try {
             const contractClient =
                 await stellarService.buildClient<IRentACarContract>(walletAddress);
@@ -48,6 +56,8 @@ export const CarsList = ({ cars }: CarsListProps) => {
             console.error("Error deleting car:", error);
             const errorMessage = error instanceof Error ? error.message : "Error al eliminar el vehículo. Por favor intenta de nuevo.";
             toast.error(errorMessage);
+        } finally {
+            setIsDeleting(null);
         }
     };
 
@@ -152,6 +162,12 @@ export const CarsList = ({ cars }: CarsListProps) => {
     };
 
     const handleReturnCar = async (car: ICar) => {
+        // Prevenir ejecuciones duplicadas
+        if (isReturning === car.ownerAddress) {
+            return;
+        }
+        
+        setIsReturning(car.ownerAddress);
         try {
             const contractClient =
                 await stellarService.buildClient<IRentACarContract>(walletAddress);
@@ -183,6 +199,8 @@ export const CarsList = ({ cars }: CarsListProps) => {
             console.error("Error returning car:", error);
             const errorMessage = error instanceof Error ? error.message : "Error al devolver el auto. Por favor intenta de nuevo.";
             toast.error(errorMessage);
+        } finally {
+            setIsReturning(null);
         }
     };
 
@@ -201,12 +219,14 @@ export const CarsList = ({ cars }: CarsListProps) => {
 
     const renderActionButton = (car: ICar) => {
         if (selectedRole === UserRole.ADMIN) {
+            const isCurrentlyDeleting = isDeleting === car.ownerAddress;
             return (
                 <button
                     onClick={() => void handleDelete(car.ownerAddress)}
-                    className="px-3 py-1 bg-red-600 text-white rounded font-semibold hover:bg-red-700 transition-colors cursor-pointer"
+                    disabled={isCurrentlyDeleting}
+                    className="px-3 py-1 bg-red-600 text-white rounded font-semibold hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors cursor-pointer"
                 >
-                    Delete
+                    {isCurrentlyDeleting ? "Deleting..." : "Delete"}
                 </button>
             );
         }
@@ -238,12 +258,14 @@ export const CarsList = ({ cars }: CarsListProps) => {
                 );
             }
             if (car.status === CarStatus.RENTED) {
+                const isCurrentlyReturning = isReturning === car.ownerAddress;
                 return (
                     <button
                         onClick={() => void handleReturnCar(car)}
-                        className="px-3 py-1 bg-orange-600 text-white rounded font-semibold hover:bg-orange-700 transition-colors cursor-pointer"
+                        disabled={isCurrentlyReturning}
+                        className="px-3 py-1 bg-orange-600 text-white rounded font-semibold hover:bg-orange-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors cursor-pointer"
                     >
-                        Return
+                        {isCurrentlyReturning ? "Returning..." : "Return"}
                     </button>
                 );
             }

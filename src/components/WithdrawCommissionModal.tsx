@@ -24,12 +24,16 @@ export default function WithdrawCommissionModal({
         try {
             const amountInStroops = amountInXlm * ONE_XLM_IN_STROOPS;
             await onWithdraw(amountInStroops);
-            toast.success("Comisión retirada exitosamente.");
+            // El toast de éxito se maneja en Dashboard
             closeModal();
         } catch (error) {
-            console.error("Error withdrawing commission:", error);
-            const errorMessage = error instanceof Error ? error.message : "Error al retirar la comisión. Por favor intenta de nuevo.";
-            toast.error(errorMessage);
+            // Solo mostrar error si el handler padre no lo maneja
+            // Los errores de validación locales se muestran aquí
+            if (!(error instanceof Error && error.message.includes("transacción"))) {
+                console.error("Error withdrawing commission:", error);
+                const errorMessage = error instanceof Error ? error.message : "Error al retirar la comisión. Por favor intenta de nuevo.";
+                toast.error(errorMessage);
+            }
         } finally {
             setIsSubmitting(false);
         }
