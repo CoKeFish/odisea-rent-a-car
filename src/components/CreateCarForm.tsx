@@ -1,4 +1,5 @@
 ﻿import { useState } from "react";
+import { toast } from "react-toastify";
 import { CreateCar } from "../interfaces/create-car";
 import Modal from "./Modal";
 
@@ -12,37 +13,105 @@ export const CreateCarForm = ({
                                   onCancel,
                               }: CreateCarFormProps) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [formData, setFormData] = useState<CreateCar>({
+    const [formData, setFormData] = useState({
         brand: "",
         model: "",
         color: "",
-        passengers: 1,
-        pricePerDay: 0,
+        passengers: "1",
+        pricePerDay: "",
         ac: false,
         ownerAddress: "",
     });
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value, type, checked } = e.target;
-        setFormData((prev) => ({
-            ...prev,
-            [name]:
-                type === "checkbox"
-                    ? checked
-                    : type === "number"
-                        ? Number(value)
-                        : value,
-        }));
+        
+        if (type === "checkbox") {
+            setFormData((prev) => ({
+                ...prev,
+                [name]: checked,
+            }));
+        } else if (type === "number") {
+            // Permitir campo vacío o valores numéricos válidos
+            if (value === "") {
+                setFormData((prev) => ({
+                    ...prev,
+                    [name]: "",
+                }));
+            } else {
+                const numValue = parseFloat(value);
+                if (!isNaN(numValue)) {
+                    if (name === "passengers") {
+                        // Para pasajeros, solo enteros >= 1
+                        const intValue = parseInt(value);
+                        if (intValue >= 1 && intValue <= 10) {
+                            setFormData((prev) => ({
+                                ...prev,
+                                [name]: value,
+                            }));
+                        }
+                    } else if (name === "pricePerDay") {
+                        // Para precio, números >= 0
+                        if (numValue >= 0) {
+                            setFormData((prev) => ({
+                                ...prev,
+                                [name]: value,
+                            }));
+                        }
+                    }
+                }
+            }
+        } else {
+            setFormData((prev) => ({
+                ...prev,
+                [name]: value,
+            }));
+        }
     };
 
     const handleSubmit = async (
         e: React.FormEvent<HTMLFormElement>
     ): Promise<void> => {
         e.preventDefault();
+        
+        // Validar y convertir valores numéricos antes de enviar
+        const passengers = parseInt(formData.passengers);
+        const pricePerDay = parseFloat(formData.pricePerDay);
+        
+        if (isNaN(passengers) || passengers < 1 || passengers > 10) {
+            toast.error("Por favor ingresa un número válido de pasajeros (entre 1 y 10).");
+            return;
+        }
+        
+        if (isNaN(pricePerDay) || pricePerDay < 0) {
+            toast.error("Por favor ingresa un precio válido por día (mayor o igual a 0).");
+            return;
+        }
+        
+        if (!formData.brand.trim() || !formData.model.trim() || !formData.color.trim()) {
+            toast.error("Por favor completa todos los campos requeridos (marca, modelo y color).");
+            return;
+        }
+        
+        if (!formData.ownerAddress.trim()) {
+            toast.error("Por favor ingresa la dirección del propietario.");
+            return;
+        }
+
+        const carData: CreateCar = {
+            brand: formData.brand,
+            model: formData.model,
+            color: formData.color,
+            passengers,
+            pricePerDay,
+            ac: formData.ac,
+            ownerAddress: formData.ownerAddress,
+        };
+
         setIsSubmitting(true);
 
         try {
-            await onCreateCar(formData);
+            await onCreateCar(carData);
         } catch (error) {
             console.error("Error creating car:", error);
         } finally {
@@ -121,6 +190,7 @@ export const CreateCarForm = ({
                             value={formData.passengers}
                             onChange={handleChange}
                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-1"
+                            placeholder="Enter number of passengers"
                         />
                     </div>
 
@@ -136,9 +206,11 @@ export const CreateCarForm = ({
                             name="pricePerDay"
                             type="number"
                             min="0"
+                            step="0.01"
                             value={formData.pricePerDay}
                             onChange={handleChange}
                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-1"
+                            placeholder="Enter price per day"
                         />
                     </div>
 
@@ -185,7 +257,20 @@ export const CreateCarForm = ({
                         )}
                         <button
                             type="submit"
-                            disabled={isSubmitting}
+                            disabled={
+                                isSubmitting ||
+                                !formData.brand.trim() ||
+                                !formData.model.trim() ||
+                                !formData.color.trim() ||
+                                !formData.ownerAddress.trim() ||
+                                formData.passengers === "" ||
+                                formData.pricePerDay === "" ||
+                                isNaN(parseInt(formData.passengers)) ||
+                                parseInt(formData.passengers) < 1 ||
+                                parseInt(formData.passengers) > 10 ||
+                                isNaN(parseFloat(formData.pricePerDay)) ||
+                                parseFloat(formData.pricePerDay) < 0
+                            }
                             className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-400 cursor-pointer"
                         >
                             {isSubmitting ? "Creating..." : "Create Car"}

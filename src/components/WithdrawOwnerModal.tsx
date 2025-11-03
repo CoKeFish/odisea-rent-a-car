@@ -16,7 +16,7 @@ export default function WithdrawOwnerModal({
     availableAmount,
     ownerAddress,
 }: WithdrawOwnerModalProps) {
-    const [amountInXlm, setAmountInXlm] = useState<number>(0);
+    const [amountInXlm, setAmountInXlm] = useState<string>("");
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Validate and normalize available amount
@@ -32,13 +32,14 @@ export default function WithdrawOwnerModal({
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         
+        const amountValue = parseFloat(amountInXlm);
         // Validate amount before submitting
-        if (isNaN(amountInXlm) || !isFinite(amountInXlm) || amountInXlm <= 0) {
+        if (isNaN(amountValue) || !isFinite(amountValue) || amountValue <= 0) {
             toast.error("Por favor ingresa un monto válido para retirar.");
             return;
         }
 
-        const amountInStroops = amountInXlm * ONE_XLM_IN_STROOPS;
+        const amountInStroops = amountValue * ONE_XLM_IN_STROOPS;
         
         if (amountInStroops > validAvailableAmount) {
             toast.error("El monto excede el balance disponible.");
@@ -66,7 +67,7 @@ export default function WithdrawOwnerModal({
 
     const handleMax = () => {
         if (validAvailableAmount > 0) {
-            setAmountInXlm(availableAmountInXlm);
+            setAmountInXlm(availableAmountInXlm.toFixed(7));
         }
     };
 
@@ -103,8 +104,9 @@ export default function WithdrawOwnerModal({
                                 step="0.0000001"
                                 value={amountInXlm}
                                 onChange={(e) => {
-                                    const value = Number(e.target.value);
-                                    if (!isNaN(value) && isFinite(value) && value >= 0) {
+                                    const value = e.target.value;
+                                    // Permitir campo vacío o valores numéricos válidos
+                                    if (value === "" || (!isNaN(parseFloat(value)) && parseFloat(value) >= 0)) {
                                         setAmountInXlm(value);
                                     }
                                 }}
@@ -136,10 +138,11 @@ export default function WithdrawOwnerModal({
                             disabled={
                                 isSubmitting ||
                                 validAvailableAmount <= 0 ||
-                                isNaN(amountInXlm) ||
-                                !isFinite(amountInXlm) ||
-                                amountInXlm <= 0 ||
-                                amountInXlm * ONE_XLM_IN_STROOPS > validAvailableAmount
+                                amountInXlm === "" ||
+                                isNaN(parseFloat(amountInXlm)) ||
+                                !isFinite(parseFloat(amountInXlm)) ||
+                                parseFloat(amountInXlm) <= 0 ||
+                                parseFloat(amountInXlm) * ONE_XLM_IN_STROOPS > validAvailableAmount
                             }
                             className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-400 cursor-pointer"
                         >

@@ -14,15 +14,27 @@ export default function WithdrawCommissionModal({
     onWithdraw,
     availableAmount,
 }: WithdrawCommissionModalProps) {
-    const [amountInXlm, setAmountInXlm] = useState<number>(0);
+    const [amountInXlm, setAmountInXlm] = useState<string>("");
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        
+        const amountValue = parseFloat(amountInXlm);
+        if (isNaN(amountValue) || amountValue <= 0) {
+            toast.error("Por favor ingresa un monto válido para retirar.");
+            return;
+        }
+
+        const amountInStroops = amountValue * ONE_XLM_IN_STROOPS;
+        if (amountInStroops > availableAmount) {
+            toast.error("El monto excede la comisión disponible.");
+            return;
+        }
+
         setIsSubmitting(true);
 
         try {
-            const amountInStroops = amountInXlm * ONE_XLM_IN_STROOPS;
             await onWithdraw(amountInStroops);
             // El toast de éxito se maneja en Dashboard
             closeModal();
@@ -40,7 +52,8 @@ export default function WithdrawCommissionModal({
     };
 
     const handleMax = () => {
-        setAmountInXlm(availableAmount / ONE_XLM_IN_STROOPS);
+        const maxAmount = (availableAmount / ONE_XLM_IN_STROOPS).toString();
+        setAmountInXlm(maxAmount);
     };
 
     return (
@@ -66,7 +79,13 @@ export default function WithdrawCommissionModal({
                                 max={availableAmount / ONE_XLM_IN_STROOPS}
                                 step="0.0000001"
                                 value={amountInXlm}
-                                onChange={(e) => setAmountInXlm(Number(e.target.value))}
+                                onChange={(e) => {
+                                    const value = e.target.value;
+                                    // Permitir campo vacío o valores numéricos válidos
+                                    if (value === "" || (!isNaN(parseFloat(value)) && parseFloat(value) >= 0)) {
+                                        setAmountInXlm(value);
+                                    }
+                                }}
                                 className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-1"
                                 placeholder="Enter amount to withdraw"
                             />
@@ -92,8 +111,9 @@ export default function WithdrawCommissionModal({
                             type="submit"
                             disabled={
                                 isSubmitting ||
-                                amountInXlm <= 0 ||
-                                amountInXlm * ONE_XLM_IN_STROOPS > availableAmount
+                                amountInXlm === "" ||
+                                parseFloat(amountInXlm) <= 0 ||
+                                parseFloat(amountInXlm) * ONE_XLM_IN_STROOPS > availableAmount
                             }
                             className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-400 cursor-pointer"
                         >
