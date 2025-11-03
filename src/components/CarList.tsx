@@ -7,6 +7,9 @@ import { walletService } from "../services/wallet.service";
 import { shortenAddress } from "../utils/shorten-address";
 import { ONE_XLM_IN_STROOPS } from "../utils/xlm-in-stroops";
 import {useStellarAccounts} from "../providers/StellarAccountProvider.tsx";
+import { useState } from "react";
+import useModal from "../hooks/useModal";
+import RentCarModal from "./RentCarModal";
 
 interface CarsListProps {
     cars: ICar[];
@@ -15,6 +18,8 @@ interface CarsListProps {
 export const CarsList = ({ cars }: CarsListProps) => {
     const { walletAddress, selectedRole, setHashId, setCars } =
         useStellarAccounts();
+    const rentModal = useModal();
+    const [selectedCar, setSelectedCar] = useState<ICar | null>(null);
 
     const handleDelete = async (owner: string) => {
         const contractClient =
@@ -45,7 +50,6 @@ export const CarsList = ({ cars }: CarsListProps) => {
 
     const handleRent = async (
         car: ICar,
-        renter: string,
         totalDaysToRent: number
     ) => {
         const contractClient =
@@ -55,7 +59,7 @@ export const CarsList = ({ cars }: CarsListProps) => {
         
         // Note: Commission is automatically added to the deposit by the contract
         const result = await contractClient.rental({
-            renter,
+            renter: walletAddress,
             owner: car.ownerAddress,
             total_days_to_rent: totalDaysToRent,
             amount: rentalAmount,
@@ -73,6 +77,11 @@ export const CarsList = ({ cars }: CarsListProps) => {
             )
         );
         setHashId(txHash as string);
+    };
+
+    const openRentModal = (car: ICar) => {
+        setSelectedCar(car);
+        rentModal.openModal();
     };
 
     const handleReturnCar = async (car: ICar) => {
@@ -139,7 +148,7 @@ export const CarsList = ({ cars }: CarsListProps) => {
             if (car.status === CarStatus.AVAILABLE) {
                 return (
                     <button
-                        onClick={() => void handleRent(car, walletAddress, 3)}
+                        onClick={() => openRentModal(car)}
                         className="px-3 py-1 bg-blue-600 text-white rounded font-semibold hover:bg-blue-700 transition-colors cursor-pointer"
                     >
                         Rent
@@ -237,6 +246,17 @@ export const CarsList = ({ cars }: CarsListProps) => {
                     </tbody>
                 </table>
             </div>
+
+            {rentModal.showModal && selectedCar && (
+                <RentCarModal
+                    closeModal={() => {
+                        rentModal.closeModal();
+                        setSelectedCar(null);
+                    }}
+                    car={selectedCar}
+                    onRent={handleRent}
+                />
+            )}
         </div>
     );
 };
