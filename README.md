@@ -2,20 +2,20 @@
 
 Aplicación descentralizada (dApp) para el alquiler de vehículos construida sobre la red Stellar utilizando contratos inteligentes de Soroban. Este proyecto implementa un sistema completo de gestión de alquiler de autos con roles de administrador, propietarios y arrendatarios.
 
-## 📋 Tabla de Contenidos
+## 📋 Tabla de contenidos
 
-- [Descripción del Proyecto](#-descripción-del-proyecto)
-- [Características Principales](#-características-principales)
+- [Descripción del proyecto](#-descripción-del-proyecto)
+- [Características principales](#-características-principales)
 - [Requisitos](#-requisitos)
 - [Instalación](#-instalación)
 - [Uso](#-uso)
-- [Arquitectura del Contrato](#-arquitectura-del-contrato)
-- [Funcionalidades Implementadas](#-funcionalidades-implementadas)
-- [Estructura del Proyecto](#-estructura-del-proyecto)
+- [Arquitectura del contrato](#-arquitectura-del-contrato)
+- [Funcionalidades implementadas](#-funcionalidades-implementadas)
+- [Estructura del proyecto](#-estructura-del-proyecto)
 - [Testing](#-testing)
-- [Tecnologías Utilizadas](#-tecnologías-utilizadas)
+- [Tecnologías utilizadas](#-tecnologías-utilizadas)
 
-## 🎯 Descripción del Proyecto
+## 🎯 Descripción del proyecto
 
 Esta aplicación permite gestionar el alquiler de vehículos de forma descentralizada utilizando la tecnología blockchain de Stellar. Los usuarios pueden:
 
@@ -23,7 +23,6 @@ Esta aplicación permite gestionar el alquiler de vehículos de forma descentral
 - **Propietarios**: Agregar vehículos al catálogo, recibir pagos por alquileres
 - **Arrendatarios**: Explorar vehículos disponibles, alquilar y devolver autos
 
-El contrato inteligente garantiza transparencia, seguridad y automatización de todos los procesos financieros.
 
 ### 💡 Recomendación para Desarrollo y Pruebas
 
@@ -43,14 +42,14 @@ De esta manera, puedes cambiar fácilmente entre roles desde la interfaz sin nec
 
 ---
 
-## ✨ Características Principales
+## ✨ Características principales
 
 ### 🧾 Comisión del Administrador
 
-El administrador puede configurar una comisión monetaria fija por cada alquiler. Esta comisión se suma automáticamente al depósito que paga el arrendatario, garantizando ingresos para la plataforma.
+El Administrador puede configurar una comisión monetaria fija por cada alquiler. Esta comisión se suma automáticamente al depósito que paga el arrendatario, garantizando ingresos para la plataforma.
 
 **Funcionalidades:**
-- Configuración de comisión por el administrador
+- Configuración de comisión por el Administrador
 - Comisión automática en cada alquiler
 - Retiro de comisiones acumuladas en cualquier momento
 - Consulta de comisión disponible para retiro
@@ -63,12 +62,12 @@ El administrador puede configurar una comisión monetaria fija por cada alquiler
 
 ### 💰 Depósito + Comisión
 
-Al alquilar un vehículo, la comisión configurada se suma automáticamente al depósito total. El propietario recibe el 100% del monto del alquiler (sin deducción de comisión), mientras que el administrador acumula la comisión configurada.
+Al alquilar un vehículo, la comisión configurada se suma automáticamente al depósito total. El Owner recibe el 100% del monto del alquiler (sin deducción de comisión), mientras que el Administrador acumula la comisión configurada.
 
 **Funcionalidades:**
 - Cálculo automático: `Depósito Total = Monto Alquiler + Comisión`
-- El propietario recibe el monto completo del alquiler
-- La comisión se acumula en la cuenta del administrador
+- El Owner recibe el monto completo del alquiler
+- La comisión se acumula en la cuenta del Administrador
 
 **Captura de pantalla:**
 <!-- Aquí puedes agregar la captura de la pantalla de alquiler mostrando el depósito total -->
@@ -78,7 +77,7 @@ Al alquilar un vehículo, la comisión configurada se suma automáticamente al d
 
 ### 💸 Retiro de Fondos del Administrador
 
-El administrador puede consultar y retirar las comisiones acumuladas en cualquier momento a través de una interfaz intuitiva.
+El Administrador puede consultar y retirar las comisiones acumuladas en cualquier momento a través de una interfaz intuitiva.
 
 **Funcionalidades:**
 - Visualización de comisión disponible en tiempo real
@@ -207,7 +206,7 @@ npm run preview
 
 ---
 
-## 🏗️ Arquitectura del Contrato
+## 🏗️ Arquitectura del contrato
 
 ### Estructura de Datos
 
@@ -238,11 +237,11 @@ pub struct Rental {
 
 #### **Funciones Públicas (Cualquiera puede llamar)**
 - `get_car_status(owner)`: Obtiene el estado de un vehículo
-- `get_admin_available_to_withdraw()`: Obtiene la comisión disponible del admin
-- `get_owner_available_to_withdraw(owner)`: Obtiene los fondos disponibles del owner
+- `get_admin_available_to_withdraw()`: Obtiene la comisión disponible del Admin
+- `get_owner_available_to_withdraw(owner)`: Obtiene los fondos disponibles del Owner
 
 #### **Funciones de Administrador**
-- `set_admin_commission(commission)`: Configura la comisión del administrador
+- `set_admin_commission(commission)`: Configura la comisión del Administrador
 - `withdraw_admin_commission(amount)`: Retira comisiones acumuladas
 - `remove_car(owner)`: Elimina un vehículo del catálogo
 
@@ -256,7 +255,7 @@ pub struct Rental {
 
 ---
 
-## 🎮 Funcionalidades Implementadas
+## 🎮 Funcionalidades implementadas
 
 ### ✅ Gestión de Vehículos
 - [x] Agregar vehículos al catálogo (Owner)
@@ -271,7 +270,7 @@ pub struct Rental {
 - [x] Cambio automático de estado a "Rented"
 
 ### ✅ Sistema de Comisiones
-- [x] Configuración de comisión por el administrador
+- [x] Configuración de comisión por el Administrador
 - [x] Comisión automática en cada alquiler
 - [x] Acumulación de comisiones
 - [x] Consulta de comisiones disponibles
@@ -283,8 +282,8 @@ pub struct Rental {
 - [x] Eliminación de registro de alquiler
 
 ### ✅ Gestión de Fondos
-- [x] Retiro de fondos por owners (solo cuando el auto está disponible)
-- [x] Retiro de comisiones por administrador
+- [x] Retiro de fondos por Owners (solo cuando el auto está disponible)
+- [x] Retiro de comisiones por Administrador
 - [x] Validación de fondos disponibles
 - [x] Visualización de fondos en tiempo real
 
@@ -298,7 +297,7 @@ pub struct Rental {
 
 ---
 
-## 📁 Estructura del Proyecto
+## 📁 Estructura del proyecto
 
 ```
 stellar0dApp/
@@ -309,7 +308,7 @@ stellar0dApp/
 │       │   ├── interfaces/
 │       │   │   └── contract.rs          # Interfaz del contrato
 │       │   ├── storage/
-│       │   │   ├── admin.rs              # Funciones de almacenamiento del admin
+│       │   │   ├── admin.rs              # Funciones de almacenamiento del Admin
 │       │   │   ├── car.rs                # Funciones de almacenamiento de autos
 │       │   │   ├── rental.rs             # Funciones de almacenamiento de alquileres
 │       │   │   └── structs/
@@ -330,7 +329,7 @@ stellar0dApp/
 │   │   ├── RentCarModal.tsx              # Modal para alquilar
 │   │   ├── SetCommissionModal.tsx         # Modal para configurar comisión
 │   │   ├── WithdrawCommissionModal.tsx    # Modal para retirar comisión
-│   │   └── WithdrawOwnerModal.tsx         # Modal para retiro de owner
+│   │   └── WithdrawOwnerModal.tsx         # Modal para retiro de Owner
 │   ├── pages/
 │   │   ├── Dashboard.tsx                  # Dashboard principal
 │   │   ├── RoleSelection.tsx              # Selección de rol
@@ -386,7 +385,7 @@ cargo test --lib
 
 ---
 
-## 🛠️ Tecnologías Utilizadas
+## 🛠️ Tecnologías utilizadas
 
 ### Backend (Smart Contract)
 - **Rust**: Lenguaje de programación
@@ -407,39 +406,10 @@ cargo test --lib
 
 ---
 
-## 📝 Notas Adicionales
-
-### Conversión de Unidades
-
-El contrato trabaja en **stroops** (la unidad más pequeña de XLM), donde:
-- `1 XLM = 10,000,000 stroops`
-
-La interfaz realiza la conversión automáticamente entre XLM y stroops para mejorar la experiencia del usuario.
-
-### Seguridad
-
-- Todas las operaciones que modifican el estado requieren autenticación
-- Validación de fondos antes de permitir retiros
-- Validación de estados de vehículos antes de operaciones
-- Manejo de errores robusto en el frontend y backend
-
 ### Red
 
 El proyecto está configurado para trabajar con:
-- **Testnet de Stellar**: Para desarrollo y pruebas
-- Fácilmente configurable para Mainnet en producción
-
----
-
-## 📄 Licencia
-
-Este proyecto está bajo la licencia especificada en el archivo `LICENSE`.
-
----
-
-## 👤 Autor
-
-Proyecto desarrollado como parte de la entrega final del curso de Stellar.
+- **Testnet de Stellar**
 
 ---
 
