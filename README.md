@@ -12,7 +12,6 @@ Aplicación descentralizada (dApp) para el alquiler de vehículos construida sob
 - [Arquitectura del Contrato](#-arquitectura-del-contrato)
 - [Funcionalidades Implementadas](#-funcionalidades-implementadas)
 - [Estructura del Proyecto](#-estructura-del-proyecto)
-- [Capturas de Pantalla](#-capturas-de-pantalla)
 - [Testing](#-testing)
 - [Tecnologías Utilizadas](#-tecnologías-utilizadas)
 
@@ -25,6 +24,22 @@ Esta aplicación permite gestionar el alquiler de vehículos de forma descentral
 - **Arrendatarios**: Explorar vehículos disponibles, alquilar y devolver autos
 
 El contrato inteligente garantiza transparencia, seguridad y automatización de todos los procesos financieros.
+
+### 💡 Recomendación para Desarrollo y Pruebas
+
+Para una mejor experiencia al probar la aplicación, **recomendamos crear 3 cuentas diferentes en Freighter** y mantenerlas conectadas simultáneamente:
+
+1. **Wallet de Administrador**: Para configurar comisiones y gestionar vehículos
+2. **Wallet de Owner**: Para agregar vehículos y recibir pagos por alquileres
+3. **Wallet de Renter**: Para alquilar y devolver vehículos
+
+De esta manera, puedes cambiar fácilmente entre roles desde la interfaz sin necesidad de desconectar y reconectar wallets. Freighter permite tener múltiples cuentas conectadas al mismo tiempo, facilitando las pruebas de las diferentes funcionalidades según el rol seleccionado.
+
+**Pasos para configurar:**
+1. Abre Freighter y crea o importa 3 cuentas diferentes
+2. Asegúrate de que cada cuenta tenga fondos en la red de prueba (Testnet)
+3. Conecta todas las cuentas a la dApp
+4. Selecciona el rol correspondiente en la interfaz
 
 ---
 
@@ -330,89 +345,6 @@ stellar0dApp/
 ├── environments.toml
 └── README.md
 ```
-
----
-
-## 📸 Capturas de Pantalla
-
-### Panel de Administración
-<!-- Agrega aquí la captura de pantalla del dashboard de administrador -->
-![Dashboard Admin](images/dashboard-admin.png)
-
-**Descripción:** El panel de administración muestra:
-- Lista de vehículos en el catálogo
-- Comisión disponible para retiro
-- Botones para configurar comisión, retirar comisiones y agregar vehículos
-
----
-
-### Configuración de Comisión
-<!-- Agrega aquí la captura de pantalla del modal de configuración de comisión -->
-![Set Commission](images/set-commission-modal.png)
-
-**Descripción:** Modal que permite:
-- Seleccionar la wallet a usar (activa o guardada)
-- Ingresar el monto de la comisión en XLM
-- Configurar la comisión que se aplicará a cada alquiler
-
----
-
-### Alquiler de Vehículo
-<!-- Agrega aquí la captura de pantalla del modal de alquiler -->
-![Rent Car](images/rent-car-modal.png)
-
-**Descripción:** Modal para alquilar que muestra:
-- Información del vehículo (marca, modelo, color, precio por día)
-- Campo para ingresar número de días
-- Cálculo automático del precio total
-- Nota sobre la comisión que se suma automáticamente
-
----
-
-### Retiro de Comisión
-<!-- Agrega aquí la captura de pantalla del modal de retiro de comisión -->
-![Withdraw Commission](images/withdraw-commission-modal.png)
-
-**Descripción:** Modal para retirar comisiones que incluye:
-- Monto disponible para retiro
-- Campo para ingresar cantidad a retirar
-- Botón "Max" para retirar todo
-- Validación de fondos disponibles
-
----
-
-### Panel de Owner
-<!-- Agrega aquí la captura de pantalla del dashboard de owner -->
-![Dashboard Owner](images/dashboard-owner.png)
-
-**Descripción:** Vista del owner que muestra:
-- Lista de sus vehículos
-- Botón "Withdraw" solo cuando el vehículo está disponible y hay fondos
-- Estado de cada vehículo (Available, Rented, Maintenance)
-
----
-
-### Retiro de Fondos del Owner
-<!-- Agrega aquí la captura de pantalla del modal de retiro de owner -->
-![Withdraw Owner](images/withdraw-owner-modal.png)
-
-**Descripción:** Modal para que owners retiren sus fondos:
-- Muestra fondos disponibles
-- Campo para especificar monto a retirar
-- Botón "Max" para retirar todo
-- Validación que solo permite retiro si el auto está disponible
-
----
-
-### Panel de Renter
-<!-- Agrega aquí la captura de pantalla del dashboard de renter -->
-![Dashboard Renter](images/dashboard-renter.png)
-
-**Descripción:** Vista del arrendatario que muestra:
-- Catálogo de vehículos disponibles
-- Botón "Rent" para vehículos disponibles
-- Botón "Return" para vehículos alquilados por el usuario
-- Información de precio y disponibilidad
 
 ---
 
