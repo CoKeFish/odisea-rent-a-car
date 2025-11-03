@@ -13,7 +13,7 @@ import { stellarService } from "../services/stellar.service";
 import { walletService } from "../services/wallet.service";
 import { ONE_XLM_IN_STROOPS } from "../utils/xlm-in-stroops";
 import {useStellarAccounts} from "../providers/StellarAccountProvider.tsx";
-import { useState } from "react";
+import {useEffect, useState} from "react";
 
 export default function Dashboard() {
     const { hashId, cars, walletAddress, setCars, setHashId, selectedRole } =
@@ -22,6 +22,22 @@ export default function Dashboard() {
     const commissionModal = useModal();
     const withdrawModal = useModal();
     const [availableCommission, setAvailableCommission] = useState<number>(0);
+
+    useEffect(() => {
+        if (selectedRole === UserRole.ADMIN && walletAddress) {
+            (async () => {
+                try {
+                    const value = await stellarService.getAdminAvailableToWithdraw(walletAddress);
+                    console.log("Available commission:", value);
+                    setAvailableCommission(value);
+                } catch (error) {
+                    console.error("Error fetching available commission:", error);
+                    setAvailableCommission(0);
+                }
+            })();
+        }
+    }, [selectedRole, walletAddress, hashId]);
+
 
     const handleCreateCar = async (formData: CreateCar) => {
         const { brand, model, color, passengers, pricePerDay, ac, ownerAddress } =
@@ -54,6 +70,8 @@ export default function Dashboard() {
         closeModal();
     };
 
+
+
     const handleSetCommission = async (commission: number) => {
         const contractClient =
             await stellarService.buildClient<IRentACarContract>(walletAddress);
@@ -67,6 +85,15 @@ export default function Dashboard() {
         const txHash = await stellarService.submitTransaction(signedTx.signedTxXdr);
 
         setHashId(txHash as string);
+        // Refresh available commission after setting
+        if (selectedRole === UserRole.ADMIN && walletAddress) {
+            try {
+                const value = await stellarService.getAdminAvailableToWithdraw(walletAddress);
+                setAvailableCommission(value);
+            } catch (error) {
+                console.error("Error refreshing available commission:", error);
+            }
+        }
         commissionModal.closeModal();
     };
 
@@ -83,9 +110,16 @@ export default function Dashboard() {
         const txHash = await stellarService.submitTransaction(signedTx.signedTxXdr);
 
         setHashId(txHash as string);
+        // Refresh available commission after withdrawal
+        if (selectedRole === UserRole.ADMIN && walletAddress) {
+            try {
+                const value = await stellarService.getAdminAvailableToWithdraw(walletAddress);
+                setAvailableCommission(value);
+            } catch (error) {
+                console.error("Error refreshing available commission:", error);
+            }
+        }
         withdrawModal.closeModal();
-        // Refresh available commission (would need a getter function in contract)
-        // For now, just close the modal
     };
 
     return (
@@ -95,7 +129,10 @@ export default function Dashboard() {
                     Cars Catalog
                 </h1>
                 {selectedRole === UserRole.ADMIN && (
-                    <div className="flex gap-3">
+                    <div className="flex gap-3 items-center">
+                        <div className="text-sm text-gray-600 mr-4">
+                            Available Commission: {(availableCommission / ONE_XLM_IN_STROOPS).toFixed(7)} XLM
+                        </div>
                         <button
                             onClick={commissionModal.openModal}
                             className="group px-6 py-3 bg-purple-600 text-white font-semibold rounded-xl shadow-lg hover:bg-purple-700 hover:shadow-xl transition-all duration-200 transform hover:scale-105 cursor-pointer"
@@ -104,7 +141,8 @@ export default function Dashboard() {
                         </button>
                         <button
                             onClick={withdrawModal.openModal}
-                            className="group px-6 py-3 bg-green-600 text-white font-semibold rounded-xl shadow-lg hover:bg-green-700 hover:shadow-xl transition-all duration-200 transform hover:scale-105 cursor-pointer"
+                            disabled={availableCommission <= 0}
+                            className="group px-6 py-3 bg-green-600 text-white font-semibold rounded-xl shadow-lg hover:bg-green-700 hover:shadow-xl disabled:bg-slate-300 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-105 disabled:transform-none cursor-pointer"
                         >
                             <span className="flex items-center gap-2">Withdraw Commission</span>
                         </button>

@@ -7,7 +7,7 @@
     WalletNetwork,
     xBullModule,
 } from "@creit.tech/stellar-wallets-kit";
-import { stellarService, StellarService } from "./stellar.service";
+import StellarService, { stellarService } from "./stellar.service";
 
 export class WalletService {
     private readonly kit: StellarWalletsKit;

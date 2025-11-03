@@ -1,10 +1,10 @@
 ﻿import {
     Asset,
     BASE_FEE,
-    Claimant, contract,
+    Claimant, Contract, contract,
     Horizon,
     Keypair,
-    Operation, rpc,
+    Operation, rpc, scValToNative,
     Transaction,
     TransactionBuilder,
     xdr
@@ -21,7 +21,7 @@ import {AccountBalance} from "../interfaces/account.ts";
 import {IAccountBalanceResponse} from "../interfaces/balance.ts";
 import {ICreateClaimableBalanceResponse} from "../interfaces/claimable-balance.ts";
 
-export class StellarService {
+class StellarService {
     private server: Horizon.Server;
     private network: string;
     private horizonUrl: string;
@@ -56,6 +56,31 @@ export class StellarService {
         });
 
         return client as T;
+    }
+
+    async getAdminAvailableToWithdraw(walletAddress: string): Promise<number> {
+        const server = new rpc.Server(this.rpcUrl, { allowHttp: true });
+        const contract = new Contract(this.contractAddress);
+
+        const account = await server.getAccount(walletAddress);
+
+        const tx = new TransactionBuilder(account, {
+            fee: "1000",
+            networkPassphrase: this.networkPassphrase,
+        })
+            .addOperation(contract.call("get_admin_available_to_withdraw"))
+            .setTimeout(30)
+            .build();
+
+        const simulation = await server.simulateTransaction(tx);
+
+        if (!("result" in simulation) || !simulation.result?.retval) {
+            console.error("Simulation failed:", simulation);
+            throw new Error("No result returned by simulation");
+        }
+
+        const value = scValToNative(simulation.result.retval);
+        return Number(value);
     }
 
     async submitTransaction(xdr: string): Promise<string | undefined> {
@@ -297,7 +322,7 @@ export class StellarService {
 
         transaction.sign(claimantKeypair);
 
-        
+
         return await this.submitTransactionOld(transaction);
 
     }
@@ -429,5 +454,7 @@ export class StellarService {
 
 
 }
+
+export default StellarService
 
 export const stellarService = new StellarService();
