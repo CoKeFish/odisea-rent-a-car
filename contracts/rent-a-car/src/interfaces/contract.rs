@@ -18,5 +18,6 @@ pub trait RentACarContractTrait {
     fn set_admin_commission(env: &Env, commission: i128) -> Result<(), Error>;
     fn withdraw_admin_commission(env: &Env, amount: i128) -> Result<(), Error>;
     fn get_admin_available_to_withdraw(env: &Env) -> i128;
+    fn get_owner_available_to_withdraw(env: &Env, owner: Address) -> i128;
     fn return_car(env: &Env, renter: Address, owner: Address) -> Result<(), Error>;
 }

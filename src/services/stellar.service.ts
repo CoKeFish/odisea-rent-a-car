@@ -21,7 +21,7 @@ import {AccountBalance} from "../interfaces/account.ts";
 import {IAccountBalanceResponse} from "../interfaces/balance.ts";
 import {ICreateClaimableBalanceResponse} from "../interfaces/claimable-balance.ts";
 
-class StellarService {
+export class StellarService {
     private server: Horizon.Server;
     private network: string;
     private horizonUrl: string;
@@ -73,6 +73,8 @@ class StellarService {
             .build();
 
         const simulation = await server.simulateTransaction(tx);
+
+        console.log("Simulation:", simulation);
 
         if (!("result" in simulation) || !simulation.result?.retval) {
             console.error("Simulation failed:", simulation);
@@ -454,7 +456,5 @@ class StellarService {
 
 
 }
-
-export default StellarService
 
 export const stellarService = new StellarService();

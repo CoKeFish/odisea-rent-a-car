@@ -12,6 +12,7 @@ use crate::storage::types::car_status::CarStatus;
 use crate::storage::types::errors::Error;
 use soroban_sdk::{contract, contractimpl, Address, Env};
 use crate::methods::public;
+use crate::methods::public::get_owner_available_to_withdraw as get_owner_available_to_withdraw_public;
 
 
 #[contract]
@@ -65,6 +66,10 @@ impl RentACarContractTrait for RentACarContract {
 
     fn get_admin_available_to_withdraw(env: &Env) -> i128 {
         public::get_admin_available_to_withdraw::get_admin_available_to_withdraw(env)
+    }
+
+    fn get_owner_available_to_withdraw(env: &Env, owner: Address) -> i128 {
+        get_owner_available_to_withdraw_public::get_owner_available_to_withdraw(env, &owner)
     }
 
     fn rental(

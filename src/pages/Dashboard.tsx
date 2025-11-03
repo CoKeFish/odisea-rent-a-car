@@ -84,6 +84,8 @@ export default function Dashboard() {
         const signedTx = await walletService.signTransaction(xdr);
         const txHash = await stellarService.submitTransaction(signedTx.signedTxXdr);
 
+        console.log("Transaction hash:", txHash);
+
         setHashId(txHash as string);
         // Refresh available commission after setting
         if (selectedRole === UserRole.ADMIN && walletAddress) {

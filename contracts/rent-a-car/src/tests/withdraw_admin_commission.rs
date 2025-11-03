@@ -191,3 +191,50 @@ pub fn test_withdraw_admin_commission_multiple_rentals() {
     assert_eq!(updated_admin_available, total_commissions - withdraw_amount);
 }
 
+#[test]
+pub fn test_withdraw_admin_commission_using_getter() {
+    let ContractTest { env, contract, token, admin, .. } = ContractTest::setup();
+
+    let owner = Address::generate(&env);
+    let renter = Address::generate(&env);
+    let price_per_day = 1500_i128;
+    let total_days = 3;
+    let amount = 4500_i128;
+    let commission = 500_i128;
+    let withdraw_amount = 300_i128;
+
+    env.mock_all_auths();
+
+    let (_, token_admin, _) = token;
+
+    let amount_mint = 10_000_i128;
+    token_admin.mint(&renter, &amount_mint);
+
+    contract.add_car(&owner, &price_per_day);
+    contract.set_admin_commission(&commission);
+    contract.rental(&renter, &owner, &total_days, &amount);
+
+    let initial_admin_available = contract.get_admin_available_to_withdraw();
+    assert_eq!(initial_admin_available, commission, 
+        "Expected initial available commission to be {}", commission);
+
+    contract
+        .mock_auths(&[MockAuth {
+            address: &admin,
+            invoke: &MockAuthInvoke {
+                contract: &contract.address.clone(),
+                fn_name: "withdraw_admin_commission",
+                args: (withdraw_amount,).into_val(&env),
+                sub_invokes: &[],
+            },
+        }])
+        .withdraw_admin_commission(&withdraw_amount);
+
+    let updated_admin_available = contract.get_admin_available_to_withdraw();
+    assert_eq!(updated_admin_available, commission - withdraw_amount,
+        "Expected updated available commission to be {} after withdrawing {}", 
+        commission - withdraw_amount, withdraw_amount);
+    assert_eq!(updated_admin_available, initial_admin_available - withdraw_amount,
+        "Available commission should decrease by the withdrawn amount");
+}
+
