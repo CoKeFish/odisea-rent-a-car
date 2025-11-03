@@ -63,6 +63,10 @@ impl RentACarContractTrait for RentACarContract {
         public::get_car_status::get_car_status(env, &owner)
     }
 
+    fn get_admin_available_to_withdraw(env: &Env) -> i128 {
+        public::get_admin_available_to_withdraw::get_admin_available_to_withdraw(env)
+    }
+
     fn rental(
         env: &Env,
         renter: Address,
